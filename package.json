@@ -13,7 +13,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "generate-api": "openapi-generator-cli generate -i docs/mgw-domain.yaml -g typescript-axios -o ./docs/api --additional-properties=npmName=@jakubwilk/mgw-domain/docs/api,supportsES6=true,withInterfaces=true"
+    "generate-api": "openapi-generator-cli generate -i mgw-domain.yaml -g typescript-axios -o ./api --additional-properties=npmName=@jakubwilk/mgw-domain,supportsES6=true,withInterfaces=true"
   },
   "dependencies": {
     "@nestjs/common": "^10.2.3",
