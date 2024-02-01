@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
-import * as cookieParser from 'cookie-parser'
-import * as fs from 'fs'
+import cookieParser from 'cookie-parser'
+import fs from 'fs'
 import { stringify } from 'yaml'
 
 import { AppModule } from './app.module'
@@ -35,6 +35,7 @@ async function bootstrap() {
 
   SwaggerModule.setup('/api', app, document)
   app.use(cookieParser())
-  await app.listen(parseInt(process.env['API_PORT']))
+  await app.listen(parseInt(process.env['API_PORT'] as string))
 }
+
 bootstrap()
