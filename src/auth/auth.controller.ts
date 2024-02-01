@@ -1,7 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common'
 import { ApiBody } from '@nestjs/swagger'
 
-import { CreateUserDto } from './models/createUser.dto'
+import { CreateUserDto } from './models/auth.model'
 import { AuthService } from './auth.service'
 
 @Controller('auth')
@@ -10,7 +10,7 @@ export class AuthController {
 
   @Post()
   @ApiBody({ type: CreateUserDto })
-  async create(@Body() userDto: CreateUserDto) {
-    return this.authService.create()
+  async create(@Body() user: CreateUserDto) {
+    return this.authService.create(user)
   }
 }
