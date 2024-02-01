@@ -7,17 +7,29 @@ import { Users } from './entity/users.entity'
 export class UsersService {
   constructor(@Inject('USERS_REPOSITORY') private usersRepository: typeof Users) {}
 
+  userNotFoundException() {
+    throw new Error('Użytkownik nie został odnaleziony')
+  }
+
+  userWithEmailExistException() {
+    throw new Error('Użytkownik z takim adresem email istnieje')
+  }
+
+  async enforceUserExist(email: string) {
+    const remoteUser = await this.usersRepository.findOne({ where: { email } })
+
+    if (!remoteUser) {
+      return this.userNotFoundException()
+    }
+  }
+
   async findAll(): Promise<Users[]> {
     return this.usersRepository.findAll<Users>()
   }
 
   async findUser(email: string): Promise<Users> {
-    const user = await this.usersRepository.findOne({ where: { email } })
+    await this.enforceUserExist(email)
 
-    if (isNil(user)) {
-      throw Error('Brak użytkownika')
-    }
-
-    return user
+    return (await this.usersRepository.findOne({ where: { email } })) as Users
   }
 }
