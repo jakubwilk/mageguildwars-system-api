@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize-typescript'
 
-import { Users } from '../users/users.entity'
+import { Characters } from '../users/entity/characters.entity'
+import { Users } from '../users/entity/users.entity'
 
 export const databaseProviders = [
   {
@@ -22,7 +23,7 @@ export const databaseProviders = [
         .catch((err) => {
           console.error('Unable to connect to the database:', err)
         })
-      sequelize.addModels([Users])
+      sequelize.addModels([Users, Characters])
       await sequelize.sync()
 
       return sequelize
