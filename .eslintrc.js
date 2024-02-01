@@ -20,7 +20,7 @@ module.exports = {
     'no-empty-pattern': 0,
     'simple-import-sort/imports': 'error',
     'simple-import-sort/exports': 'error',
-    'no-unused-vars': 'warn',
+    'no-unused-vars': 0,
   },
   overrides: [
     {
