@@ -1,25 +1,5 @@
 openapi: 3.0.0
-paths:
-  /users:
-    get:
-      operationId: UsersController_findAll
-      parameters: []
-      responses:
-        "200":
-          description: ""
-  /auth:
-    post:
-      operationId: AuthController_create
-      parameters: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateUserDto"
-      responses:
-        "201":
-          description: ""
+paths: {}
 info:
   title: Title
   description: description
@@ -28,17 +8,4 @@ info:
 tags: []
 servers: []
 components:
-  schemas:
-    CreateUserDto:
-      type: object
-      properties:
-        username:
-          type: string
-        password:
-          type: string
-        email:
-          type: string
-      required:
-        - username
-        - password
-        - email
+  schemas: {}
