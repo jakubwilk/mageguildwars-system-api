@@ -4,7 +4,7 @@ import { Model } from 'mongoose'
 
 import { AuthService } from '../auth/auth.service'
 
-import { ICreateUser } from './models'
+import { CreateOrLoginUserDTO } from './models'
 import { User } from './schemas'
 
 @Injectable()
@@ -28,7 +28,7 @@ export class UsersService {
     return
   }
 
-  async createAsync({ email, password }: ICreateUser): Promise<User> {
+  async createAsync({ email, password }: CreateOrLoginUserDTO): Promise<User> {
     await this.isUserExist('')
     const hashPassword = await this._authService.createPasswordHash(password)
     const createdUser = new this.userModel({

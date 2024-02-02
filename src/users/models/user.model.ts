@@ -1,3 +1,5 @@
+import { IsEmail, IsString, Length } from 'class-validator'
+
 import { UserDocument } from '../schemas'
 
 export enum UserGroupEnum {
@@ -7,8 +9,11 @@ export enum UserGroupEnum {
   ROOT,
 }
 
-export interface ICreateUser {
+export class CreateOrLoginUserDTO {
+  @IsEmail()
   email: string
+  @IsString()
+  @Length(14)
   password: string
 }
 
