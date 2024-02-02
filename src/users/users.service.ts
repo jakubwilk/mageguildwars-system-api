@@ -1,35 +1,27 @@
-import { Inject, Injectable } from '@nestjs/common'
-import { isNil } from '@nestjs/common/utils/shared.utils'
+import { Injectable } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
+import { Model } from 'mongoose'
 
-import { Users } from './entity/users.entity'
+import { User } from './schemas'
 
 @Injectable()
 export class UsersService {
-  constructor(@Inject('USERS_REPOSITORY') private usersRepository: typeof Users) {}
+  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  userNotFoundException() {
-    throw new Error('Użytkownik nie został odnaleziony')
-  }
+  async isUserExist(email: string): Promise<Error | undefined> {
+    const user = await this.userModel.findOne({ email }).exec()
 
-  userWithEmailExistException() {
-    throw new Error('Użytkownik z takim adresem email istnieje')
-  }
-
-  async enforceUserExist(email: string) {
-    const remoteUser = await this.usersRepository.findOne({ where: { email } })
-
-    if (!remoteUser) {
-      return this.userNotFoundException()
+    if (user) {
+      return Error('Użytkownik istnieje')
     }
+
+    return
   }
 
-  async findAll(): Promise<Users[]> {
-    return this.usersRepository.findAll<Users>()
-  }
+  async createAsync(): Promise<User> {
+    await this.isUserExist('')
+    const createdUser = new this.userModel(null)
 
-  async findUser(email: string): Promise<Users> {
-    await this.enforceUserExist(email)
-
-    return (await this.usersRepository.findOne({ where: { email } })) as Users
+    return createdUser.save()
   }
 }
