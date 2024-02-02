@@ -4,3 +4,8 @@ export enum UserGroupEnum {
   OPERATOR,
   ROOT,
 }
+
+export interface ICreateUser {
+  email: string
+  password: string
+}

@@ -12,7 +12,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options)
 
   app.enableCors({
-    origin: process.env['CLIENT_URL'],
+    origin: '*', // process.env['CLIENT_URL'],
     credentials: true,
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH', 'OPTIONS'],
     allowedHeaders: [

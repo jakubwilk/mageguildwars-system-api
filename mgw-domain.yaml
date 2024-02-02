@@ -1,5 +1,12 @@
 openapi: 3.0.0
-paths: {}
+paths:
+  /api/v1/users:
+    get:
+      operationId: UsersController_create
+      parameters: []
+      responses:
+        "200":
+          description: ""
 info:
   title: Title
   description: description

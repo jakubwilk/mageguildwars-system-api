@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { HydratedDocument, Schema as MongooseSchema } from 'mongoose'
+import { HydratedDocument } from 'mongoose'
 
 import { UserGroupEnum } from '../models'
 
@@ -7,34 +7,37 @@ export type UserDocument = HydratedDocument<User>
 
 @Schema()
 export class User {
-  @Prop({ type: MongooseSchema.Types.UUID, unique: true })
-  uid: string
-
-  @Prop({ unique: true, required: true })
+  @Prop({ unique: true })
   email: string
 
-  @Prop({ required: true })
+  @Prop()
   password: string
 
-  @Prop({ required: true })
+  @Prop({ default: null })
+  authToken: string | null
+
+  @Prop({ default: null })
+  refreshToken: string | null
+
+  @Prop({ default: UserGroupEnum.USER })
   group: UserGroupEnum
 
-  @Prop({ default: new Date(), required: true })
+  @Prop({ default: new Date() })
   createdAt: Date
 
-  @Prop({ default: new Date(), required: true })
+  @Prop({ default: new Date() })
   updatedAt: Date
 
-  @Prop({ default: 3, required: true })
+  @Prop({ default: 3 })
   charactersLimit: number
 
-  @Prop({ default: false, required: true })
+  @Prop({ default: false })
   isLocked: boolean
 
-  @Prop({ default: false, required: true })
+  @Prop({ default: false })
   isBanned: boolean
 
-  @Prop({ default: true, required: true })
+  @Prop({ default: true })
   hasEnabledCharacterCreator: boolean
 }
 

@@ -2,25 +2,39 @@ import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
+import { AuthService } from '../auth/auth.service'
+
+import { ICreateUser } from './models'
 import { User } from './schemas'
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private readonly _authService: AuthService,
+  ) {}
+
+  handleUserExistException() {
+    throw new Error('api.errorUserWithMailExist')
+  }
 
   async isUserExist(email: string): Promise<Error | undefined> {
     const user = await this.userModel.findOne({ email }).exec()
 
     if (user) {
-      return Error('Użytkownik istnieje')
+      this.handleUserExistException()
     }
 
     return
   }
 
-  async createAsync(): Promise<User> {
+  async createAsync({ email, password }: ICreateUser): Promise<User> {
     await this.isUserExist('')
-    const createdUser = new this.userModel(null)
+    const hashPassword = await this._authService.createPasswordHash(password)
+    const createdUser = new this.userModel({
+      email,
+      password: hashPassword,
+    })
 
     return createdUser.save()
   }
