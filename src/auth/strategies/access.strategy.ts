@@ -6,7 +6,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt'
 import { getEnvVariable } from '../../utils'
 
 @Injectable()
-export class AccessStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class AccessStrategy extends PassportStrategy(Strategy, 'access') {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([AccessStrategy.extractJWT, ExtractJwt.fromExtractors([(req) => req.cookies['token']])]),
