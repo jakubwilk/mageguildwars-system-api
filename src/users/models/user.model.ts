@@ -1,6 +1,6 @@
-import { IsEmail, IsString, Length } from 'class-validator'
+import { IsEmail, IsNumber, IsString, Length } from 'class-validator'
 
-import { UserDocument } from '../schemas'
+import { User } from '../schemas'
 
 export enum UserGroupEnum {
   BANNED,
@@ -15,20 +15,8 @@ export class CreateOrLoginUserDTO {
   @IsString()
   @Length(14)
   password: string
+  @IsNumber()
+  group: UserGroupEnum
 }
 
-export type TUser = Pick<
-  UserDocument,
-  '_id' | 'email' | 'createdAt' | 'updatedAt' | 'charactersLimit' | 'isLocked' | 'isBanned' | 'hasEnabledCharacterCreator'
->
-
-export interface IUserDataWithTokens {
-  access: string
-  refresh: string
-  user: TUser
-}
-
-export interface IUserDataWithTokensResponse {
-  refresh: string
-  user: TUser
-}
+export interface IClientUser extends Omit<User, '_id' | '__v' | 'password' | 'authToken' | 'refreshToken'> {}

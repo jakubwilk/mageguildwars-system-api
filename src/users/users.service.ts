@@ -10,7 +10,7 @@ import { User } from './schemas'
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(User.name) private _userModel: Model<User>,
     private readonly _authService: AuthService,
   ) {}
 
@@ -19,7 +19,7 @@ export class UsersService {
   }
 
   async isUserExist(email: string): Promise<Error | undefined> {
-    const user = await this.userModel.findOne({ email }).exec()
+    const user = await this._userModel.findOne({ email }).exec()
 
     if (user) {
       this.handleUserExistException()
@@ -28,14 +28,17 @@ export class UsersService {
     return
   }
 
-  async createAsync({ email, password }: CreateOrLoginUserDTO): Promise<User> {
+  async createAsync({ email, password, group }: CreateOrLoginUserDTO): Promise<User> {
     await this.isUserExist('')
     const hashPassword = await this._authService.createPasswordHash(password)
-    const createdUser = new this.userModel({
+    const access = await this._authService.createAccessToken({ email, group })
+    const refresh = await this._authService.createRefreshToken({ email, group })
+    const user = new this._userModel({
       email,
       password: hashPassword,
+      authToken: access,
+      refreshToken: refresh,
     })
-
-    return createdUser.save()
+    return await user.save()
   }
 }

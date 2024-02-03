@@ -1,9 +1,11 @@
 import { Body, Controller, Post, Res } from '@nestjs/common'
 import { Response } from 'express'
 
-import { returnUserDataWithTokens } from '../auth/utils'
+import { AuthCookieNameEnum } from '../auth/models'
+import { DEFAULT_ACCESS_OPTIONS, DEFAULT_REFRESH_OPTIONS } from '../auth/utils'
 
-import { CreateOrLoginUserDTO } from './models'
+import { mapUserDataToClient } from './mappers'
+import { CreateOrLoginUserDTO, IClientUser } from './models'
 import { UsersService } from './users.service'
 
 @Controller('api/v1/users')
@@ -13,6 +15,11 @@ export class UsersController {
   @Post()
   async create(@Body() createUser: CreateOrLoginUserDTO, @Res() res: Response) {
     const user = await this._usersService.createAsync(createUser)
-    return returnUserDataWithTokens({ access: '', refresh: '', user: { _id: null, ...user } }, res)
+    const { authToken: access, refreshToken: refresh } = user
+    const userData: IClientUser = mapUserDataToClient(user)
+    return res
+      .cookie(AuthCookieNameEnum.ACCESS, access, { ...DEFAULT_ACCESS_OPTIONS })
+      .cookie(AuthCookieNameEnum.REFRESH, refresh, { ...DEFAULT_REFRESH_OPTIONS })
+      .json({ data: userData })
   }
 }
