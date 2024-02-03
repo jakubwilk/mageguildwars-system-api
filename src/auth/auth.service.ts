@@ -22,11 +22,23 @@ export class AuthService {
     throw new Error('api.errorWithTokenCreation')
   }
 
+  handleVerifyPasswordException() {
+    throw new Error('api.errorWithUserPassword')
+  }
+
   async createPasswordHash(password: string): Promise<string> {
     try {
       return await argon2.hash(password, { saltLength: 20 })
     } catch (err) {
       this.handleHashPasswordException()
+    }
+  }
+
+  async isUserPasswordCorrect(password: string, savedUserPassword: string): Promise<boolean> {
+    try {
+      return await argon2.verify(savedUserPassword, password)
+    } catch (err) {
+      this.handleVerifyPasswordException()
     }
   }
 
