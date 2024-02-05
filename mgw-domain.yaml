@@ -1,11 +1,29 @@
 openapi: 3.0.0
 paths:
   /api/v1/users:
-    get:
+    put:
       operationId: UsersController_create
       parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserDTO"
       responses:
         "200":
+          description: ""
+    post:
+      operationId: UsersController_login
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginUserDTO"
+      responses:
+        "201":
           description: ""
 info:
   title: Title
@@ -15,4 +33,10 @@ info:
 tags: []
 servers: []
 components:
-  schemas: {}
+  schemas:
+    CreateUserDTO:
+      type: object
+      properties: {}
+    LoginUserDTO:
+      type: object
+      properties: {}

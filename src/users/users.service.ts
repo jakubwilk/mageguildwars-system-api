@@ -45,8 +45,21 @@ export class UsersService {
   }
 
   async updateUserTokens(email: string, access: string, refresh: string): Promise<void> {
+    await this.updateUserAccessToken(email, access)
+    await this.updateUserRefreshToken(email, refresh)
+  }
+
+  async updateUserAccessToken(email: string, access: string): Promise<void> {
     try {
-      await this._userModel.updateOne({ email }, { authToken: access, refreshToken: refresh })
+      await this._userModel.updateOne({ email }, { authToken: access })
+    } catch (err) {
+      this.handleUpdateUserException()
+    }
+  }
+
+  async updateUserRefreshToken(email: string, refresh: string): Promise<void> {
+    try {
+      await this._userModel.updateOne({ email }, { refreshToken: refresh })
     } catch (err) {
       this.handleUpdateUserException()
     }
