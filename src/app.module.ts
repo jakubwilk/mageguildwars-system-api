@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose'
 import { UsersModule } from './users/users.module'
 import { getEnvVariable } from './utils'
 import { AuthModule } from './auth/auth.module';
+import { ExceptionModule } from './exception/exception.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
     MongooseModule.forRoot(getEnvVariable('DATABASE_URL')),
     UsersModule,
     AuthModule,
+    ExceptionModule,
   ],
 })
 export class AppModule {}
