@@ -40,10 +40,11 @@ export class AuthController {
   @UseGuards(RefreshGuard)
   @Get()
   @ApiCookieAuth('refresh')
-  async autoLoginAccount(@Req() req: Request) {
+  async autoLoginAccount(@Req() req: Request, @Res() res: Response) {
     console.log('req.cookie', req.cookies)
     console.log('req.headers', req.headers)
 
     await this._authService.autoLoginAccount()
+    return res.json({ test: 'essa' })
   }
 }
