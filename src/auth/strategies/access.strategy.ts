@@ -9,7 +9,7 @@ import { getEnvVariable } from '../../utils'
 export class AccessStrategy extends PassportStrategy(Strategy, 'access') {
   constructor() {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([AccessStrategy.extractJWT, ExtractJwt.fromExtractors([(req) => req.cookies['token']])]),
+      jwtFromRequest: ExtractJwt.fromExtractors([AccessStrategy.extractJWT, ExtractJwt.fromAuthHeaderAsBearerToken()]),
       ignoreExpiration: false,
       secretOrKey: getEnvVariable('JWT_SECRET'),
     })
