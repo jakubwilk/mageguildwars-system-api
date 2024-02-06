@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { HydratedDocument } from 'mongoose'
+import { v4 } from 'uuid'
 
 import { UserGroupEnum } from '../models'
 
@@ -7,17 +8,14 @@ export type UserDocument = HydratedDocument<User>
 
 @Schema()
 export class User {
+  @Prop({ unique: true, default: () => v4() })
+  uid: string
+
   @Prop({ unique: true })
   email: string
 
   @Prop()
   password: string
-
-  @Prop({ default: null })
-  authToken: string | null
-
-  @Prop({ default: null })
-  refreshToken: string | null
 
   @Prop({ default: UserGroupEnum.USER })
   group: UserGroupEnum
