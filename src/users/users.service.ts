@@ -1,85 +1,41 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Response } from 'express'
 import { Model } from 'mongoose'
 
-import { AuthService } from '../auth/auth.service'
-import { AuthCookieNameEnum } from '../auth/models'
-import { DEFAULT_ACCESS_OPTIONS, DEFAULT_REFRESH_OPTIONS } from '../auth/utils'
+import { ExceptionService } from '../exception/exception.service'
 
-import { mapUserDataToClient } from './mappers'
-import { CreateUserDTO, IClientUser } from './models'
-import { User } from './schemas'
+import { ICreateUserSchema } from './models'
+import { User, UserDocument } from './schemas'
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private _userModel: Model<User>,
-    private readonly _authService: AuthService,
+    private readonly _exceptionService: ExceptionService,
   ) {}
 
-  handleUserExistException() {
-    throw new Error('api.errorUserWithMailExist')
-  }
-
-  handleUpdateUserException() {
-    throw new Error('api.errorUserUpdate')
-  }
-
-  async isUserExist(email: string): Promise<Error | undefined> {
+  async validUserExistence(email: string, shouldReturnUser: boolean = true): Promise<UserDocument> {
     const user = await this._userModel.findOne({ email }).exec()
 
-    if (user) {
-      this.handleUserExistException()
+    if (user && shouldReturnUser) {
+      return user
     }
 
-    return
+    this._exceptionService.handleExistUserException()
   }
 
-  async returnUserWithTokens(user: User, access: string, refresh: string, res: Response) {
-    const userData: IClientUser = mapUserDataToClient(user)
-    return res
-      .cookie(AuthCookieNameEnum.ACCESS, access, { ...DEFAULT_ACCESS_OPTIONS })
-      .cookie(AuthCookieNameEnum.REFRESH, refresh, { ...DEFAULT_REFRESH_OPTIONS })
-      .json({ data: userData })
-  }
-
-  async updateUserTokens(email: string, access: string, refresh: string): Promise<void> {
-    await this.updateUserAccessToken(email, access)
-    await this.updateUserRefreshToken(email, refresh)
-  }
-
-  async updateUserAccessToken(email: string, access: string): Promise<void> {
+  async createAccountSchema(userData: ICreateUserSchema): Promise<User> {
     try {
-      await this._userModel.updateOne({ email }, { authToken: access })
+      const user = new this._userModel({ ...userData })
+      return await user.save()
     } catch (err) {
-      this.handleUpdateUserException()
+      this._exceptionService.resolveInheritException(err)
+      this._exceptionService.handleCreateUserException()
     }
   }
 
-  async updateUserRefreshToken(email: string, refresh: string): Promise<void> {
-    try {
-      await this._userModel.updateOne({ email }, { refreshToken: refresh })
-    } catch (err) {
-      this.handleUpdateUserException()
-    }
-  }
-
-  async createAsync({ email, password, group }: CreateUserDTO): Promise<User> {
-    await this.isUserExist(email)
-    const hashPassword = await this._authService.createPasswordHash(password)
-    const access = await this._authService.createAccessToken({ email, group })
-    const refresh = await this._authService.createRefreshToken({ email, group })
-    const user = new this._userModel({
-      email,
-      password: hashPassword,
-      authToken: access,
-      refreshToken: refresh,
-    })
-    return await user.save()
-  }
-
-  async loginAsync({ email }): Promise<User> {
-    return await this._userModel.findOne({ email }).exec()
-  }
+  // async getUser(email: string): Promise<User> {
+  //   return await this._userModel.findOne({ email }).exec()
+  // }
+  //
 }

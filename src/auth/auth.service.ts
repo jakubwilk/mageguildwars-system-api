@@ -1,85 +1,107 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
+import { JwtSignOptions } from '@nestjs/jwt/dist/interfaces'
 import * as argon2 from 'argon2'
 
-import { User } from '../users/schemas'
+import { ExceptionService } from '../exception/exception.service'
+import { mapUserDataToClient } from '../users/mappers'
+import { User, UserDocument } from '../users/schemas'
 import { UsersService } from '../users/users.service'
+import { getEnvVariable } from '../utils'
 
-import { ITokenPayload, IUserTokenPayload } from './models'
+import { AuthOptionsNameEnum, CreateUserDTO, ICreateOrLoginUser, ITokenPayload, ITokensPair, LoginUserDTO } from './models'
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly _jwtService: JwtService,
-    private _configService: ConfigService,
     private readonly _usersService: UsersService,
+    private readonly _exceptionService: ExceptionService,
   ) {}
-
-  handleGenericInternalException() {
-    throw new HttpException('api.genericInternalError', HttpStatus.INTERNAL_SERVER_ERROR)
-  }
 
   async createPasswordHash(password: string): Promise<string> {
     try {
       return await argon2.hash(password, { saltLength: 20 })
     } catch (err) {
-      this.handleGenericInternalException()
+      console.log('err 2', err)
+      this._exceptionService.handleHashException()
     }
   }
 
-  async isUserPasswordCorrect(password: string, savedUserPassword: string): Promise<boolean> {
+  async validUserPassword(password: string, savedUserPassword: string): Promise<boolean> {
     try {
       return await argon2.verify(savedUserPassword, password)
     } catch (err) {
-      this.handleGenericInternalException()
+      this._exceptionService.handleMismatchPasswordException()
     }
   }
 
-  async isUserTokenCorrect(userToken: string, savedToken: string): Promise<boolean> {
+  async validUserExistence(userData: CreateUserDTO | LoginUserDTO, shouldReturnUser: boolean = true): Promise<UserDocument> {
+    const { email } = userData
+    return await this._usersService.validUserExistence(email, shouldReturnUser)
+  }
+
+  async getPayloadFromToken(token: string): Promise<ITokenPayload> {
     try {
-      return await argon2.verify(savedToken, userToken)
+      return await this._jwtService.decode(token)
     } catch (err) {
-      this.handleGenericInternalException()
+      this._exceptionService.handleAuthTokenException()
     }
   }
 
-  createPayloadForToken(user: IUserTokenPayload): ITokenPayload {
-    return {
-      email: user.email,
-      group: user.group,
-    }
-  }
-
-  async createAccessToken(user: IUserTokenPayload): Promise<string> {
+  async generateToken(user: User, isAccessToken: boolean = true): Promise<string> {
     try {
-      const payload = this.createPayloadForToken(user)
-      return await this._jwtService.signAsync(payload, { secret: this._configService.get<string>('JWT_SECRET'), expiresIn: '6h' })
-    } catch (err) {
-      this.handleGenericInternalException()
-    }
-  }
-
-  async createRefreshToken(user: IUserTokenPayload): Promise<string> {
-    try {
-      const payload = this.createPayloadForToken(user)
-      return await this._jwtService.signAsync(payload, { secret: this._configService.get<string>('JWT_REFRESH_SECRET'), expiresIn: '14d' })
-    } catch (err) {
-      this.handleGenericInternalException()
-    }
-  }
-
-  async updateRefreshToken(user: User): Promise<void> {
-    try {
-      const { email, group } = user
-      const userData: IUserTokenPayload = {
-        email,
-        group,
+      const payload: ITokenPayload = {
+        uid: user.uid,
+        group: user.group,
       }
-      const newRefreshToken = await this.createRefreshToken(userData)
-      await this._usersService.updateUserRefreshToken(user.email, newRefreshToken)
+      const options: JwtSignOptions = {
+        secret: getEnvVariable(isAccessToken ? AuthOptionsNameEnum.SECRET : AuthOptionsNameEnum.REFRESH),
+        expiresIn: isAccessToken ? AuthOptionsNameEnum.SHORT : AuthOptionsNameEnum.LONG,
+      }
+
+      return await this._jwtService.signAsync(payload, { ...options })
     } catch (err) {
-      this.handleGenericInternalException()
+      this._exceptionService.handleAuthTokenException()
     }
   }
+
+  async generatePairOfTokens(user: User): Promise<ITokensPair> {
+    const access = await this.generateToken(user)
+    const refresh = await this.generateToken(user, false)
+
+    return { access, refresh }
+  }
+
+  async createAccount(userData: CreateUserDTO): Promise<ICreateOrLoginUser> {
+    try {
+      await this.validUserExistence(userData, false)
+
+      const hashPassword = await this.createPasswordHash(userData.password)
+      const user = await this._usersService.createAccountSchema({ ...userData, password: hashPassword })
+      const tokens = await this.generatePairOfTokens(user)
+
+      return { tokens, user: mapUserDataToClient(user) }
+    } catch (err) {
+      this._exceptionService.resolveInheritException(err)
+      this._exceptionService.handleCreateUserException()
+    }
+  }
+
+  async loginAccount(userData: LoginUserDTO): Promise<ICreateOrLoginUser> {
+    try {
+      const user = await this.validUserExistence(userData)
+
+      await this.validUserPassword(userData.password, user.password)
+
+      const tokens = await this.generatePairOfTokens(user)
+
+      return { tokens, user: mapUserDataToClient(user) }
+    } catch (err) {
+      this._exceptionService.resolveInheritException(err)
+      this._exceptionService.handleLoginUserException()
+    }
+  }
+
+  async autoLoginAccount(): Promise<void> {}
 }
