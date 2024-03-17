@@ -1,10 +1,14 @@
 {
-  "name": "mgw-domain",
-  "version": "0.0.1",
+  "name": "mageguildwars-system-api",
+  "version": "0.1.0",
   "description": "",
   "author": "",
-  "private": true,
+  "private": false,
   "license": "UNLICENSED",
+  "repository": "https://github.com/jakubwilk/mageguildwars-system-api",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -23,7 +27,7 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.3.1",
     "@nestjs/swagger": "^7.2.0",
-    "@openapitools/openapi-generator-cli": "^2.9.0",
+    "@openapitools/openapi-generator-cli": "^2.12.0",
     "argon2": "^0.31.2",
     "class-validator": "^0.14.1",
     "crypto": "^1.0.1",
